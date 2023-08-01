@@ -5,12 +5,7 @@ on: [push, pull_request]
 jobs:
   check_changelog:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          path: copy_repo
-        
+    steps:       
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
