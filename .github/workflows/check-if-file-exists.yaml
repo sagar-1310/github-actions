@@ -13,7 +13,9 @@ jobs:
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
         with:
-          files_yaml: CHANGELOG.md
+          files_yaml: |
+            doc:
+              - CHANGELOG.md
 
       - name: Abort the workflow if CHANGELOG is not updated
         if: steps.changed-files-yaml.outputs.doc_any_changed != 'true'
