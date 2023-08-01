@@ -15,7 +15,7 @@ jobs:
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
         with:
-          repository: ./copy-repo
+          repository: ./copy-repo,
           files_yaml: |
             doc:
               - CHANGELOG.md
