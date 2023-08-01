@@ -11,11 +11,6 @@ jobs:
         with:
           path: ./copy-repo
 
-      - name: Checkout files
-        uses: Bhacaz/checkout-files@v2
-        with:
-          files: CHANGELOG.md
-
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
