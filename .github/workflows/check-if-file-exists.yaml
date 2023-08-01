@@ -5,7 +5,12 @@ on: [push, pull_request]
 jobs:
   check_changelog:
     runs-on: ubuntu-latest
-    steps:       
+    steps:
+      - name: Checkout files
+        uses: Bhacaz/checkout-files@v2
+        with:
+          files: CHANGELOG.md
+
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
