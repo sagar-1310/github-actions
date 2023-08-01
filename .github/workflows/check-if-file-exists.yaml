@@ -8,6 +8,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ./github/copy_repo
+          path: copy_repo
         
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
