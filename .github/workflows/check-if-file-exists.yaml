@@ -37,7 +37,7 @@ jobs:
                 fi
             done
 
-      - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
+      - name: Check if CHANGELOG is Updated and Abort if not updated
         if: steps.set-flag.outputs.file-flag != 'true'
         run: |
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
