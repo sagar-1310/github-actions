@@ -11,7 +11,7 @@ jobs:
         with:
           path: copy-repo
       - name: echo
-        run: ls -lrt
+        run: ls -lrt copy-repo
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
