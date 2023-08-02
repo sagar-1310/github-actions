@@ -18,6 +18,7 @@ jobs:
       - name: Get changed files
         id: changed-files
         run: |
+            cd copy-repo
             if ${{ github.event_name == 'pull_request' }}; then
                 echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
             else
@@ -27,6 +28,7 @@ jobs:
       - name: List changed files
         id: set-flag
         run: |
+            cd copy-repo
             for file in ${{ steps.changed-files.outputs.changed_files }}; do
                 echo "$file was changed"
                 if [[ $file == "CHANGELOG.md" ]]
