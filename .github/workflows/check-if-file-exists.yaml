@@ -12,6 +12,9 @@ jobs:
             path: copy-repo
             fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
 
+      - name: files under copy-repo
+        run: ls -lart copy-repo
+
       - name: Get changed files
         id: changed-files
         run: |
