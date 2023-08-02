@@ -1,2 +1,2 @@
 # github-actions
-# workflows
+# workflow
