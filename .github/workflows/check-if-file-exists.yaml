@@ -9,7 +9,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          path: ./copy-repo
+          path: copy-repo
 
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
@@ -17,7 +17,7 @@ jobs:
         with:
           files_yaml: |
             doc:
-              - ./copy-repo/CHANGELOG.md
+              - copy-repo/CHANGELOG.md
 
       - name: Abort the workflow if CHANGELOG is not updated
         if: steps.changed-files-yaml.outputs.doc_any_changed != 'true'
