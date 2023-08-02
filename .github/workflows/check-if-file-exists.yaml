@@ -10,10 +10,22 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: copy-repo
+
       - name: echo
         run: ls -lart
+      
       - name: echo
         run: ls -lart copy-repo
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+            if ${{ github.event_name == 'pull_request' }}; then
+                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+            else
+                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+            fi
+
       - name: Check if CHANGELOG is added
         id: changed-files-yaml
         uses: tj-actions/changed-files@v37
