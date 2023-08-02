@@ -17,7 +17,7 @@ jobs:
         with:
           files_yaml: |
             doc:
-              - CHANGELOG.md
+              - ./copy-repo/CHANGELOG.md
 
       - name: Abort the workflow if CHANGELOG is not updated
         if: steps.changed-files-yaml.outputs.doc_any_changed != 'true'
