@@ -42,9 +42,9 @@ jobs:
       #         - copy-repo/CHANGELOG.md
 
       - name: Abort the workflow if CHANGELOG is not updated
-        if: steps.set-flag.outputs.file-flag != "true"
+        if: steps.set-flag.outputs.file-flag != 'true'
         run: |
-          echo "CHANGELOG not added. Please add the CHANGELOG in CHANGELOG.md file"
+          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
           exit 1
         
   Build:
