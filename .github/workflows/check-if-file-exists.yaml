@@ -10,10 +10,7 @@ jobs:
         uses: actions/checkout@v3
         with:
             path: copy-repo
-            fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
-
-      - name: files under copy-repo
-        run: ls -lart copy-repo
+            # fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
 
       - name: Get changed files
         id: changed-files
@@ -32,23 +29,15 @@ jobs:
             for file in ${{ steps.changed-files.outputs.changed_files }}; do
                 echo "$file was changed"
                 if [[ $file == "CHANGELOG.md" ]]
-                break;
                 then
                   echo "file-flag=true" >> $GITHUB_OUTPUT
+                  break;
                 else
                   echo "file-flag=false" >> $GITHUB_OUTPUT
                 fi
             done
 
-      - name: Check if CHANGELOG is added
-        id: changed-files-yaml
-        uses: tj-actions/changed-files@v37
-        with:
-          files_yaml: |
-            doc:
-              - copy-repo/CHANGELOG.md
-
-      - name: Abort the workflow if CHANGELOG is not updated
+      - name: Check if CHANGELOG is Updated and Abort the workflow if CHANGELOG is not updated
         if: steps.set-flag.outputs.file-flag != 'true'
         run: |
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
