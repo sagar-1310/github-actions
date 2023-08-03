@@ -41,6 +41,7 @@ jobs:
         if: steps.set-flag.outputs.file-flag != 'true'
         run: |
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
+          rm - r copy-repo && echo "ls -lart"
           exit 1
         
   Build:
