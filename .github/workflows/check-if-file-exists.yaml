@@ -44,6 +44,8 @@ jobs:
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
           pull_number: ${{ github.event.pull_request.number }}
+          run: |
+            echo "Got the PR commits"
         
       - name: Extract Changelog
         id: changelog
@@ -64,6 +66,8 @@ jobs:
       - name: Push changes
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            echo "Pushed the changes"
           
   check_changelog:
       runs-on: ubuntu-latest
