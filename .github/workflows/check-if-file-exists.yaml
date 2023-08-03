@@ -37,13 +37,7 @@ jobs:
                 fi
             done
 
-      - name: echo
-        run: ls -lart
-
-      - name: Remove Copy-repo
-        run: rm -r copy-repo
-
-      - name: echo
+      - name: echo tests before removing copy-repo
         run: ls -lart
 
       - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
@@ -52,7 +46,12 @@ jobs:
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
           exit 1
 
-  
+      - name: Remove Copy-repo
+        if: always()
+        run: |
+          rm -r copy-repo |      
+          ls -lart
+ 
   Build:
     runs-on: ubuntu-latest
     steps:
