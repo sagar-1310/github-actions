@@ -48,9 +48,11 @@ jobs:
 
       - name: Remove Copy-repo
         if: always()
-        run: |
-          rm -r copy-repo |      
-          ls -lart
+        run: rm -r copy-repo
+
+      - name: echo tests after removing copy-repo
+        if: always()
+        run: ls -lart
  
   Build:
     runs-on: ubuntu-latest
