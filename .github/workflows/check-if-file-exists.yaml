@@ -43,6 +43,9 @@ jobs:
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
           echo "ls -lart"
           exit 1
+
+      - name: Remove Copy-repo
+        run: ls -lart copy-repo
         
   Build:
     runs-on: ubuntu-latest
