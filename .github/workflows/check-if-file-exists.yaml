@@ -40,17 +40,18 @@ jobs:
       - name: echo
         run: ls -lart
 
+      - name: Remove Copy-repo
+        run: rm -r copy-repo
+
+      - name: echo
+        run: ls -lart
+
       - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
         if: steps.set-flag.outputs.file-flag != 'true'
         run: |
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
           exit 1
 
-      - name: Remove Copy-repo
-        run: rm -r copy-repo
-
-      - name: echo
-        run: ls -lart
   
   Build:
     runs-on: ubuntu-latest
