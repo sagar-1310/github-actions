@@ -7,68 +7,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-            path: copy-repo
-            fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+        uses: actions/checkout@v2
       
-      - name: Get changed files
-        id: changed-files
+      - name: Get commit message 
+        id: commit
         run: |
-            cd copy-repo
-            if ${{ github.event_name == 'pull_request' }}; then
-                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
-            else
-                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-            fi
+           COMMIT_MESSAGE=$(git log --format=%B -n 1)
+           echo "Commit message: $COMMIT_MESSAGE"
+           echo "::set-output name=message::$COMMIT_MESSAGE"
+           
 
-      - name: List changed files
+      - name: update changelog
         id: set-flag
         run: |
-            cd copy-repo
-            for file in ${{ steps.changed-files.outputs.changed_files }}; do
-                echo "$file was changed"
-                if [[ $file == "CHANGELOG.md" ]]
-                then
-                  echo "file-flag=true" >> $GITHUB_OUTPUT
-                  break;
-                else
-                  echo "file-flag=false" >> $GITHUB_OUTPUT
-                fi
-            done
-
-      - name: Get PR commits
-        id: pr
-        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/{owner}/{repo}/pulls/{pull_number}/commits
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          pull_number: ${{ github.event.pull_request.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract commit messages
-        id: commits
-        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
-        run: |
-          COMMITS=${{ steps.pr.outputs.data }}
-          COMMIT_MESSAGES=$(echo "$COMMITS" | jq -r '[.[] | .commit.message] | join("\n")')
-          echo "COMMIT_MESSAGES=$COMMIT_MESSAGES" >> $GITHUB_ENV
-
-      - name: Update Changelog
-        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
-        run: |
-          echo -e "$COMMIT_MESSAGES\n$(cat CHANGELOG.md)" > CHANGELOG.md
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md"
-
-      - name: Push changes
-        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
-        uses: actions/checkout@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.event.pull_request.base.ref }}
+            echo "${{ steps.commit.outputs.message }}" >>CHANGELOG.md
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add CHANGELOG.md
+            git commit -m "update CHANGELOG.md"
+            git push
