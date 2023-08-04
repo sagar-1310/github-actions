@@ -24,4 +24,9 @@ jobs:
             git config --local user.name "Himani1519"
             git add CHANGELOG.md
             git commit -m "update CHANGELOG.md"
-            git push
+            
+      - name: Push changes
+        uses: ad-m/github-push-actions@main
+        with:
+            github_token: ${{ secrets.MY_GITHUB_TOKEN }}
+       
