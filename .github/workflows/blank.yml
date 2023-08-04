@@ -9,12 +9,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
-      - name: Check if CHANGELOG was updated
-        id: check-changelog
+      - name: Get changed files
+        id: changed-files
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          CHANGELOG_UPDATED=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files | jq '[.[] | select(.filename=="CHANGELOG.md") | .status=="modified"] | any')
-          echo "::set-output name=updated::$CHANGELOG_UPDATED"
+            cd copy-repo
+            if ${{ github.event_name == 'pull_request' }}; then
+                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+            else
+                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+            fi
+
+      - name: List changed files
+        id: set-flag
+        run: |
+            cd copy-repo
+            for file in ${{ steps.changed-files.outputs.changed_files }}; do
+                echo "$file was changed"
+                if [[ $file == "CHANGELOG.md" ]]
+                then
+                  echo "file-flag=true" >> $GITHUB_OUTPUT
+                  break;
+                else
+                  echo "file-flag=false" >> $GITHUB_OUTPUT
+                fi
+            done
 
       - name: Get PR commits
         id: pr
