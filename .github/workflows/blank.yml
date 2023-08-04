@@ -1,43 +1,56 @@
+name: Update Changelog
+
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types: [opened, reopened, synchronize]
+    types:
+      - opened
 
 jobs:
-  comment:
+  changelog:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.8"
-      - name: Update version
-        id: version
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Check if CHANGELOG was updated
+        id: check-changelog
         run: |
-          echo "GITHUB_REF is a tag you set for the release"
-          echo "Your GitHub ref: ${GITHUB_REF}"
-          VERSION=`echo "${GITHUB_REF}" | cut -f 3 -d "/"`
-          echo "Preparing version ${VERSION}"
-          echo "__version__ = \"${VERSION}\"" > __version__.py
-          echo "##[set-output name=version;]$(echo ${VERSION})"
-      - uses: vemel/update-changelog@0.0.1
-        id: changelog
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          CHANGELOG_UPDATED=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files | jq '[.[] | select(.filename=="CHANGELOG.md") | .status=="modified"] | any')
+          echo "::set-output name=updated::$CHANGELOG_UPDATED"
+
+      - name: Get PR commits
+        id: pr
+        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
+        uses: octokit/request-action@v2.x
         with:
-          version: ${{ steps.version.outputs.version }}
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v2
+          route: GET /repos/{owner}/{repo}/pulls/{pull_number}/commits
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pull_number: ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract commit messages
+        id: commits
+        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
+        run: |
+          COMMITS=${{ steps.pr.outputs.data }}
+          COMMIT_MESSAGES=$(echo "$COMMITS" | jq -r '[.[] | .commit.message] | join("\n")')
+          echo "COMMIT_MESSAGES=$COMMIT_MESSAGES" >> $GITHUB_ENV
+
+      - name: Update Changelog
+        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
+        run: |
+          echo -e "$COMMIT_MESSAGES\n$(cat CHANGELOG.md)" > CHANGELOG.md
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md"
+
+      - name: Push changes
+        if: ${{ steps.check-changelog.outputs.updated == 'false' }}
+        uses: ad-m/github-push-action@master
         with:
-          commit-message: Release ${{ steps.version.outputs.version }}
-          labels: release, bot
-          title: "Release ${{ steps.version.outputs.version }}"
-          body: |
-            # Release ${{ steps.version.outputs.version }}
-
-            Merge this PR to update your version and changelog!
-
-            ## Included Pull Requests
-
-            ${{ steps.changelog.outputs.pulls_list_md }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.event.pull_request.base.ref }}
