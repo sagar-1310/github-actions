@@ -19,7 +19,7 @@ jobs:
 
       - name: update changelog
         run: |
-            echo -e "${{ steps.commit.outputs.message }}\n" >>CHANGELOG.md
+            echo -e "${COMMIT_MESSAGE}\n\n" >> CHANGELOG.md
             git config --local user.email "paripathak80@gmail.com"
             git config --local user.name "Himani1519"
             git add CHANGELOG.md
