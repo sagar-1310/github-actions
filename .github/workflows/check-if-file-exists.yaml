@@ -39,6 +39,7 @@ jobs:
             
       - name : Get PR commits
         id: pr
+        uses: actions/checkout@v3
         with:
           route: GET /repos/{owner}/{repo}/pulls/{pull_number}/commits
           owner: ${{ github.repository_owner }}
@@ -64,6 +65,7 @@ jobs:
           git commit -m  "Update changelog" -a
         
       - name: Push changes
+        uses: actions/checkout@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           run: |
