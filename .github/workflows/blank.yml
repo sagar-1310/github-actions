@@ -1,9 +1,6 @@
-name: Update Changelog
+name: "Test"
 
-on:
-  pull_request:
-    types:
-      - opened
+on: [push, pull_request]
 
 jobs:
   changelog:
