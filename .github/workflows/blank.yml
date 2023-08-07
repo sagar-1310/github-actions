@@ -9,6 +9,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Get changed files
+        id: changed-files
+        run: |
+            cd copy-repo
+            if ${{ github.event_name == 'pull_request' }}; then
+                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
+            else
+                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
+            fi
+
+      - name: List changed files
+        id: set-flag
+        run: |
+            cd copy-repo
+            for file in ${{ steps.changed-files.outputs.changed_files }}; do
+                echo "$file was changed"
+                if [[ $file == "CHANGELOG.md" ]]
+                then
+                  echo "file-flag=true" >> $GITHUB_OUTPUT
+                  break;
+                else
+                  echo "file-flag=false" >> $GITHUB_OUTPUT
+                fi
+            done
+
+      - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
+        run: |
+          if ${{ steps.set-flag.outputs.file-flag != 'true' }}; then
+              echo "CHANGELOG not added. updating the changelog"
+          else
+              echo "CHANGELOG already added"
+              exit 1
+          fi
+
       - name: Get commit message
         run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
 
