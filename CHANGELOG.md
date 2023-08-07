@@ -8,3 +8,4 @@ new line
 
 
 try with new changes
+I already update my changelog.md
