@@ -40,11 +40,14 @@ jobs:
             
 
       - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
-        if: steps.set-flag.outputs.file-flag != 'true'
         run: |
-          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
-          exit 1
-
+          if ${{ steps.set-flag.outputs.file-flag }}; then
+              echo "CHANGELOG not added. updating the changelog"
+          else
+              echo "CHANGELOG already added"
+              exit 1
+          fi
+          
       - name: Get commit message
         run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
 
