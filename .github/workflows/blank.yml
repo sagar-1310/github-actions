@@ -1,50 +1,33 @@
-name: Update Changelog
+name: Check Changelog
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  changelog:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      was_updated: ${{ steps.check-changelog.outputs.was_updated }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-      - name: Get changed files
-        id: changed-files
+      - name: Check if CHANGELOG.md was updated
+        id: check-changelog
         run: |
-            cd copy-repo
-            if ${{ github.event_name == 'pull_request' }}; then
-                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD | xargs)" >> $GITHUB_OUTPUT
-            else
-                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | xargs)" >> $GITHUB_OUTPUT
-            fi
-
-      - name: List changed files
-        id: set-flag
-        run: |
-            cd copy-repo
-            for file in ${{ steps.changed-files.outputs.changed_files }}; do
-                echo "$file was changed"
-                if [[ $file == "CHANGELOG.md" ]]
-                then
-                  echo "file-flag=true" >> $GITHUB_OUTPUT
-                  break;
-                else
-                  echo "file-flag=false" >> $GITHUB_OUTPUT
-                fi
-            done
-
-      - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
-        run: |
-          if ${{ steps.set-flag.outputs.file-flag != 'true' }}; then
-              echo "CHANGELOG not added. updating the changelog"
+          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
+            echo "CHANGELOG.md was updated in the last commit."
+            echo "::set-output name=was_updated::true"
           else
-              echo "CHANGELOG already added"
-              exit 1
+            echo "CHANGELOG.md was NOT updated in the last commit."
+            echo "::set-output name=was_updated::false"
           fi
 
       - name: Get commit message
         run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
+        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+
 
       - name: Append commit to Changelog
         run: |
@@ -57,4 +40,3 @@ jobs:
           git config --global user.name "Himani1519"
           git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
           git push origin || echo "No changes to push"
-       
