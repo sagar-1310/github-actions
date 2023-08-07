@@ -9,3 +9,4 @@ new line
 
 try with new changes
 I already update my changelog.md
+already updated CHANGELOG.md
