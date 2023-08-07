@@ -41,7 +41,7 @@ jobs:
 
       - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
         run: |
-          if ${{ steps.set-flag.outputs.file-flag }}; then
+          if ${{ steps.set-flag.outputs.file-flag != 'true' }}; then
               echo "CHANGELOG not added. updating the changelog"
           else
               echo "CHANGELOG already added"
