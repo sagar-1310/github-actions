@@ -66,7 +66,7 @@ jobs:
           if: needs.check_changelog.output.was_updated != 'true'
           run: |
             echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
-            echo ${{ steps.check-changelog.outputs.was_updated}}
+            echo "${{ steps.check-changelog.outputs.was_updated}}"
             
 
         - name: Commit and push if it changed
