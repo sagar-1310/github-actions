@@ -31,7 +31,7 @@ jobs:
 
       - name: Append commit to Changelog
         run: |
-          echo "$COMMIT_MESSAGE" >> CHANGELOG.md
+          echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
         if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
 
       - name: Commit and push if it changed
