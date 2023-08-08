@@ -59,13 +59,13 @@ jobs:
 
         - name: Get commit message
           run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
-          # if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+          if: needs.check_changelog.output.was_updated != 'true'
 
 
         - name: Append commit to Changelog
           run: |
             echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
-          # if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+            if: needs.check_changelog.output.was_updated != 'true'
 
         - name: Commit and push if it changed
           run: |
@@ -74,7 +74,7 @@ jobs:
             git config --global user.name "Himani1519"
             git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
             git push origin || echo "No changes to push"
-          # if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+            if: needs.check_changelog.output.was_updated != 'true'
 
         
   Build:
