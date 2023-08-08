@@ -32,10 +32,12 @@ jobs:
                 echo "$file was changed"
                 if [[ $file == "CHANGELOG.md" ]]
                 then
-                  echo "file-flag=true" >> $GITHUB_OUTPUT
+                  # echo "file-flag=true" >> $GITHUB_OUTPUT
+                  echo "::set-output name=file-flag::true" >> $GITHUB_OUTPUT
                   break;
                 else
-                  echo "file-flag=false" >> $GITHUB_OUTPUT
+                  # echo "file-flag=false" >> $GITHUB_OUTPUT
+                  echo "::set-output name=file-flag::false" >> $GITHUB_OUTPUT
                 fi
             done
 
@@ -50,6 +52,7 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout code
+          if: needs.check_changelog.output.was_updated != 'true'
           uses: actions/checkout@v2
           with:
             fetch-depth: 2
