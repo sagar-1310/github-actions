@@ -52,13 +52,13 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout code
-          if: needs.check_changelog.output.was_updated != 'true'
+          if: needs.check_changelog.outputs.was_updated != 'true'
           uses: actions/checkout@v2
           with:
             fetch-depth: 2
 
         - name: Get commit message
-          if: needs.check_changelog.output.was_updated != 'true'
+          if: needs.check_changelog.outputs.was_updated != 'true'
           run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
       
 
@@ -66,6 +66,7 @@ jobs:
           if: needs.check_changelog.output.was_updated != 'true'
           run: |
             echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
+            echo ${{ steps.check-changelog.outputs.was_updated}}
             
 
         - name: Commit and push if it changed
@@ -76,7 +77,7 @@ jobs:
             git config --global user.name "Himani1519"
             git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
             git push origin || echo "No changes to push"
-            if: needs.check_changelog.output.was_updated != 'true'
+            if: needs.check_changelog.outputs.was_updated != 'true'
 
         
   Build:
