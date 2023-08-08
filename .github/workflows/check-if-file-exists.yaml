@@ -45,9 +45,11 @@ jobs:
           
     
   update_changelog:
+      needs: check_changelog
+      if: steps.set-flag.outputs.file-flag != 'true'
       runs-on: ubuntu-latest
       outputs:
-        was_updated: ${{ steps.check-changelog.outputs.was_updated }}
+          was_updated: ${{ steps.check-changelog.outputs.was_updated }}
       steps:
         - name: Checkout code
           uses: actions/checkout@v2
