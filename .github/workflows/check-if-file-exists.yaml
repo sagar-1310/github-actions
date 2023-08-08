@@ -3,46 +3,9 @@ name: "File existence check"
 on: [push, pull_request]
 
 jobs:
-  check:
+  check_changelog:
     runs-on: ubuntu-latest
-    outputs:
-      was_updated: ${{ steps.check-changelog.outputs.was_updated }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-
-      - name: Check if CHANGELOG.md was updated
-        id: check-changelog
-        run: |
-          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
-            echo "CHANGELOG.md was updated in the last commit."
-            echo "::set-output name=was_updated::true"
-          else
-            echo "CHANGELOG.md was NOT updated in the last commit."
-            echo "::set-output name=was_updated::false"
-          fi
-
-      - name: Get commit message
-        run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
-
-
-      - name: Append commit to Changelog
-        run: |
-          echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
-
-      - name: Commit and push if it changed
-        run: |
-          git diff
-          git config --global user.email "paripathak80@gmail.com"
-          git config --global user.name "Himani1519"
-          git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
-          git push origin || echo "No changes to push"
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
-          
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -74,11 +37,53 @@ jobs:
                 fi
             done
 
-      - name: Check if CHANGELOG is Updated and Abort if CHANGELOG is not updated
+      - name: Check if CHANGELOG is Updated and Abort if not updated
         if: steps.set-flag.outputs.file-flag != 'true'
         run: |
           echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
           exit 1
+          
+    
+  update_changelog:
+      runs-on: ubuntu-latest
+      outputs:
+        was_updated: ${{ steps.check-changelog.outputs.was_updated }}
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+          with:
+            fetch-depth: 2
+
+        - name: Check if CHANGELOG.md was updated
+          id: check-changelog
+          run: |
+            if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
+              echo "CHANGELOG.md was updated in the last commit."
+              echo "::set-output name=was_updated::true"
+            else
+              echo "CHANGELOG.md was NOT updated in the last commit."
+              echo "::set-output name=was_updated::false"
+            fi
+
+        - name: Get commit message
+          run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
+          if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+
+
+        - name: Append commit to Changelog
+          run: |
+            echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
+          if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+
+        - name: Commit and push if it changed
+          run: |
+            git diff
+            git config --global user.email "paripathak80@gmail.com"
+            git config --global user.name "Himani1519"
+            git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
+            git push origin || echo "No changes to push"
+          if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+
         
   Build:
     runs-on: ubuntu-latest
