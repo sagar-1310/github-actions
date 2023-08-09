@@ -34,12 +34,6 @@ jobs:
       needs: check_changelog
       runs-on: ubuntu-latest
       steps:
-        # - name: Checkout code
-        #   if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
-        #   uses: actions/checkout@v2
-        #   with:
-        #     fetch-depth: 2
-
         - name: Get commit message
           if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
