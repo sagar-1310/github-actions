@@ -4,10 +4,10 @@ name: Manage Changelog
 on: [push, pull_request]
 
 jobs:
-  update_changelog:
+  update-changelog:
     runs-on: ubuntu-latest
     outputs:
-      was_updated: ${{ steps.set_output.outputs.was_updated }}
+      cacheKey: ${{ steps.generate-key.outputs.key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -19,21 +19,21 @@ jobs:
         run: |
           if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
             echo "CHANGELOG.md was updated in the last commit."
-            echo "::set-output name=was_updated::true"
+            echo "::set-output name=was_updated::false"
           else
             echo "CHANGELOG.md was NOT updated in the last commit."
-            echo "::set-output name=was_updated::false"
+            echo "::set-output name=was_updated::true"
           fi
 
       - name: Get commit message
         run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+        if: ${{ steps.check-changelog.outputs.was_updated == 'true' }}
 
 
       - name: Append commit to Changelog
         run: |
           echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+        if: ${{ steps.check-changelog.outputs.was_updated == 'true' }}
 
       - name: Commit and push if it changed
         run: |
@@ -42,26 +42,31 @@ jobs:
           git config --global user.name "Himani1519"
           git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
           git push origin || echo "No changes to push"
-        if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+        if: ${{ steps.check-changelog.outputs.was_updated == 'true' }}
 
-      - name: Set output for verification
-        id: set_output
-        run: echo "::set-output name=wasUpdated::true"
+  
+
+      - name: Cache the update status
+        uses: actions/cache@v2
+        if: steps.check-changelog.outputs.wasUpdated == 'true'
+        with:
+          path: .changelog_updated
+          key: ${{ steps.generate-key.outputs.key }}
 
   verify-changelog:
-    needs: update_changelog
+    needs: update-changelog
     runs-on: ubuntu-latest
-    if: needs.update_changelog.outputs.wasUpdated == 'true'
     steps:
-     - name: Checkout code
-       uses: actions/checkout@v2
-       with:
-          fetch-depth: 2
+      - name: Retrieve update status from cache
+        uses: actions/cache@v2
+        with:
+          path: .changelog_updated
+          key: ${{ needs.update-changelog.outputs.cacheKey }}
 
-     - name: Verify CHANGELOG.md was updated
-       run: |
-         if git diff --name-only HEAD~1..HEAD | grep '^CHANGELOG.md$'; then
-            echo "CHANGELOG.md was updated."
+      - name: Verify CHANGELOG.md was updated
+        run: |
+          if [ -f .changelog_updated ]; then
+            echo "CHANGELOG.md was updated by the previous job."
           else
             echo "CHANGELOG.md was not updated."
             exit 1
