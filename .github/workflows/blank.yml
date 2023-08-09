@@ -3,7 +3,7 @@ name: Check Changelog
 on: [push, pull_request]
 
 jobs:
-  check:
+  update_changelog:
     runs-on: ubuntu-latest
     outputs:
       was_updated: ${{ steps.check-changelog.outputs.was_updated }}
@@ -42,3 +42,32 @@ jobs:
           git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
           git push origin || echo "No changes to push"
         if: ${{ steps.check-changelog.outputs.was_updated == 'false' }}
+
+        
+  check_changelog:
+    needs: update_changelog
+    runs-on: ubuntu-latest
+    # outputs:
+    #     was_updated: ${{ steps.check.outputs.was_updated }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: Check if CHANGELOG.md was updated
+        id: check
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
+            echo "CHANGELOG.md was updated in the last commit."
+            echo "::set-output name=was_updated::true"
+          else
+            echo "CHANGELOG.md was NOT updated in the last commit."
+            echo "::set-output name=was_updated::false"
+          fi
+
+      - name: Check if CHANGELOG is Updated and Abort if not updated
+        if: ${{ steps.check.outputs.was_updated != 'true' }}
+        run: |
+          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
+          exit 1
