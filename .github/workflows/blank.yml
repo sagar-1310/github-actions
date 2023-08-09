@@ -7,7 +7,7 @@ jobs:
   update_changelog:
     runs-on: ubuntu-latest
     outputs:
-      was_updated: ${{ steps.check-changelog.outputs.was_updated }}
+      was_updated: ${{ steps.set_output.outputs.was_updated }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
