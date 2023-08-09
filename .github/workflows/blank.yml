@@ -28,8 +28,8 @@ jobs:
         if: steps.check.outputs.wasUpdated == 'true'
         run: |
           # Your script or command to update the CHANGELOG.md
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config --global user.name "Himani1519"
+          git config --global user.email "paripathak80@gmail.com"
           git add CHANGELOG.md
           git commit -m "Update CHANGELOG.md"
           git push
