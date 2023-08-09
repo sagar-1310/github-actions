@@ -23,7 +23,6 @@ jobs:
             echo "CHANGELOG.md was NOT updated in the last commit."
             echo "::set-output name=was_updated::false"
           fi
-
       - name: Check if CHANGELOG is Updated and Abort if not updated
         if: ${{ steps.check.outputs.was_updated != 'true' }}
         run: |
@@ -34,6 +33,12 @@ jobs:
       needs: check_changelog
       runs-on: ubuntu-latest
       steps:
+        # - name: Checkout code
+        #   if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+        #   uses: actions/checkout@v2
+        #   with:
+        #     fetch-depth: 2
+
         - name: Get commit message
           if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
@@ -45,7 +50,6 @@ jobs:
             echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
             echo "${{ steps.check-changelog.outputs.was_updated}}"
             
-
         - name: Commit and push if it changed
           if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: |
@@ -55,11 +59,9 @@ jobs:
             git commit -am "Update Changelog" -m "$COMMIT_MESSAGE" && echo ::set-output name=push::true || echo "No changes to commit"
             git push origin || echo "No changes to push"
           
-
         
   Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
