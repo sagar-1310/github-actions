@@ -48,7 +48,7 @@ jobs:
 
       - name: Cache the update status
         uses: actions/cache@v2
-        if: steps.check-changelog.outputs.wasUpdated == 'true'
+        if: steps.check-changelog.outputs.wasUpdated == 'false'
         with:
           path: .changelog_updated
           key: ${{ steps.generate-key.outputs.key }}
