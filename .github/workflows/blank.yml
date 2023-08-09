@@ -52,22 +52,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-
-      - name: Check if CHANGELOG.md was updated
-        id: check
+      - name: check if CHANGELOG.md was updated now
         run: |
-          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
-            echo "CHANGELOG.md was updated in the last commit."
-            echo "::set-output name=was_updated::true"
+          if git diff --name-only HEAD~1..HEAD |grep '^CHANGELOG.md$' ; then
+            echo "CHANGELOG.md was updated."
           else
-            echo "CHANGELOG.md was NOT updated in the last commit."
-            echo "::set-output name=was_updated::false"
+            echo "CHANGELOG.md was not updated."
+            exit 1
           fi
-
-      - name: Check if CHANGELOG is Updated and Abort if not updated
-        if: ${{ steps.check.outputs.was_updated != 'true' }}
-        run: |
-          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
-          exit 1
+        
