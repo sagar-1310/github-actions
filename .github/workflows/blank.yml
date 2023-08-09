@@ -51,7 +51,7 @@ jobs:
   verify-changelog:
     needs: update_changelog
     runs-on: ubuntu-latest
-    # if: needs.update-changelog.outputs.wasUpdated == 'true'
+    if: needs.update_changelog.outputs.wasUpdated == 'true'
     steps:
      - name: Checkout code
        uses: actions/checkout@v2
