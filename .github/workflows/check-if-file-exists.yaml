@@ -32,26 +32,27 @@ jobs:
   update_changelog:
       needs: check_changelog
       runs-on: ubuntu-latest
+      if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
       steps:
         - name: Checkout code
-          if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+          # if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           uses: actions/checkout@v2
           with:
             fetch-depth: 2
 
         - name: Get commit message
-          if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+          # if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: echo "COMMIT_MESSAGE=$(git log --format=%B -n 1)" >> $GITHUB_ENV
       
 
         - name: Append commit to Changelog
-          if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+          # if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: |
             echo "CHANGELOG: $COMMIT_MESSAGE" >> CHANGELOG.md
             echo "${{ steps.check-changelog.outputs.was_updated}}"
             
         - name: Commit and push if it changed
-          if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+          # if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
           run: |
             git diff
             git config --global user.email "paripathak80@gmail.com"
