@@ -1,11 +1,10 @@
-name: "File existence check"
+name: "blank file"
 
 on: [push, pull_request]
 
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
