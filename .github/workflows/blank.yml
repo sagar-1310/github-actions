@@ -1,13 +1,20 @@
-name: "blank file"
+name: Read PR Description
 
-on: 
+on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  print-pr-message:
+  print-description:
     runs-on: ubuntu-latest
     steps:
-    - name: Output PR message
+    - name: Print Entire GitHub Context
+      run: echo "${{ toJson(github) }}"
+      
+    - name: Echo PR Description or Notify if Empty
       run: |
-        echo "PR Message: ${{ github.event.pull_request.body }}"
+        if [[ -z "${{ github.event.pull_request.body }}" ]]; then
+          echo "The PR description is empty."
+        else
+          echo "PR Description: ${{ github.event.pull_request.body }}"
+        fi
