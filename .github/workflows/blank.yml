@@ -1,1 +1,24 @@
+name: "File existence check"
+
+on: [push, pull_request]
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Update Changelog after specific marker
+      run: |
+        awk -v r="- ${{ github.event.pull_request.title }}: ${{ github.event.pull_request.body }}" '/## \[v2.11.0\]/{print $0; print r; next}1' CHANGELOG.md > TEMP.md && mv TEMP.md CHANGELOG.md
+
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add CHANGELOG.md
+        git commit -m "Update CHANGELOG.md for PR #${{ github.event.pull_request.number }}"
+        git push
 
