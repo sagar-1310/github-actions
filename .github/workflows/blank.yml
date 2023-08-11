@@ -8,7 +8,7 @@ jobs:
   check_changelog:
     runs-on: ubuntu-latest
     outputs:
-        was_updated: ${{ steps.check.outputs.was_updated }}
+      was_updated: ${{ steps.check.outputs.was_updated }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -25,13 +25,15 @@ jobs:
             echo "CHANGELOG.md was NOT updated in the last commit."
             echo "::set-output name=was_updated::false"
           fi
-      - name: Check if CHANGELOG is Updated and Abort if not updated
+      - name: Check if CHANGELOG is Updated and if not updated pass to update_changelog
         if: ${{ steps.check.outputs.was_updated != 'true' }}
         run: |
-          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
+          echo "CHANGELOG.md not updated, please update CHANGELOG.md with the changes made in the pull request"
           
   update-changelog:
+    needs: check_changelog
     runs-on: ubuntu-latest
+    if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
