@@ -25,7 +25,7 @@ jobs:
         LAST_MARKER_LINE=$(grep -n '##' CHANGELOG.md | tail -1 | cut -d: -f1)
 
         # Append the PR description after the marker line
-        sed -i "${LAST_MARKER_LINE}a ${github.event.pull_request.body}" CHANGELOG.md
+        sed -i "${LAST_MARKER_LINE}a ${{github.event.pull_request.body}}" CHANGELOG.md
         #echo -e "\n## PR Description for #${{ github.event.pull_request.number }}" >> changelog.md
         #echo "${{ github.event.pull_request.body }}" >> changelog.md
 
