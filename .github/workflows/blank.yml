@@ -1,1 +1,60 @@
+name: Read PR Description
 
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check_changelog:
+    runs-on: ubuntu-latest
+    outputs:
+        was_updated: ${{ steps.check.outputs.was_updated }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: Check if CHANGELOG.md was updated
+        id: check
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
+            echo "CHANGELOG.md was updated in the last commit."
+            echo "::set-output name=was_updated::true"
+          else
+            echo "CHANGELOG.md was NOT updated in the last commit."
+            echo "::set-output name=was_updated::false"
+          fi
+      - name: Check if CHANGELOG is Updated and Abort if not updated
+        if: ${{ steps.check.outputs.was_updated != 'true' }}
+        run: |
+          echo "CHANGELOG not added. Please add the CHANGELOG in the CHANGELOG.md file"
+          
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+        
+    - name: Get Branch Prefix and Echo
+      run: |
+        BRANCH_NAME="${{ github.head_ref }}"
+        PREFIX=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+        echo "Branch Prefix: $PREFIX"
+    - name: Append PR Description to Changelog
+      run: |
+        # Find the line number of the first '##' occurrence
+        LINE_NUMBER=$(awk '/^##/{print NR; exit}' CHANGELOG.md)
+         
+        # Insert PR description as a bullet point after the '##' line
+        sed -i "${LINE_NUMBER} a- ${{github.event.pull_request.body}}. (#${{ github.event.pull_request.number }})" CHANGELOG.md
+        
+    - name: Commit and Push Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add CHANGELOG.md
+        git commit -m "Update changelog with PR #${{ github.event.pull_request.number }} description"
+        git push
