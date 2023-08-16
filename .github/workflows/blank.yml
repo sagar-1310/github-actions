@@ -5,58 +5,80 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  check_changelog:
+  update-changelog:
     runs-on: ubuntu-latest
     outputs:
-      was_updated: ${{ steps.check.outputs.was_updated }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-
-      - name: Check if CHANGELOG.md was updated
-        id: check
-        run: |
-          if git diff --name-only HEAD^ HEAD | grep 'CHANGELOG.md'; then
-            echo "CHANGELOG.md was updated in the last commit."
-            echo "::set-output name=was_updated::true"
-          else
-            echo "CHANGELOG.md was NOT updated in the last commit."
-            echo "::set-output name=was_updated::false"
-          fi
-      - name: Check if CHANGELOG is Updated and if not updated pass to update_changelog
-        if: ${{ steps.check.outputs.was_updated != 'true' }}
-        run: |
-          echo "CHANGELOG.md not updated, please update CHANGELOG.md with the changes made in the pull request"
-          
-  update-changelog:
-    needs: check_changelog
-    runs-on: ubuntu-latest
-    if: ${{ needs.check_changelog.outputs.was_updated == 'false' }}
+      was_updated: ${{ steps.check-change.outputs.change_detected }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         ref: ${{ github.head_ref }}
         
-    - name: Get Branch Prefix and Echo
+    - name: Extract changelog info
+      id: extract-changelog
       run: |
-        BRANCH_NAME="${{ github.head_ref }}"
-        PREFIX=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
-        echo "Branch Prefix: $PREFIX"
+        PR_DESCRIPTION="${{ github.event.pull_request.body }}"
+        
+        # Check if "changelog:" exists in PR description
+        if [[ $PR_DESCRIPTION == *"CHANGELOG:"* ]]; then
+          
+          # Extract text after "changelog:"
+          CHANGELOG_TEXT=$(echo $PR_DESCRIPTION | sed -n 's/.*CHANGELOG: \(.*\)/\1/p')
+          
+          echo "Extracted changelog: $CHANGELOG_TEXT"
+          echo "::set-output name=changelog::$CHANGELOG_TEXT"
+        else
+          echo "No changelog information found in PR description please add the changelog note"
+          exit 1
+        fi
+
     - name: Append PR Description to Changelog
+      id: check-commit
       run: |
         # Find the line number of the first '##' occurrence
         LINE_NUMBER=$(awk '/^##/{print NR; exit}' CHANGELOG.md)
          
         # Insert PR description as a bullet point after the '##' line
-        sed -i "${LINE_NUMBER} a- ${{github.event.pull_request.body}}. (#${{ github.event.pull_request.number }})" CHANGELOG.md
-        
+        if ! grep -qF "$CHANGELOG_TEXT" CHANGELOG.md; then
+          echo "appending text into the CHANGELOG file..."
+          sed -i "${LINE_NUMBER} a- ${{ steps.extract-changelog.outputs.changelog }} . (#${{ github.event.pull_request.number }})" CHANGELOG.md
+          echo "to_commit=::set-output name=to_commit::false"
+        else
+          echo "Changes are already there in Changelog file, performing exit"
+          echo "to_commit=::set-output name=to_commit::true"
+        fi
     - name: Commit and Push Changes
+      if: steps.check-commit.outputs.to_commit == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add CHANGELOG.md
         git commit -m "Update changelog with PR #${{ github.event.pull_request.number }} description"
         git push
+       
+    - name: check for changes
+      id: check-change
+      run: |
+        if git diff --name-only HEAD^ HEAD | grep 'changelog.md'; then
+          echo "No Changes detected, setting flag to false"
+          echo "::set-output name=change_detected::false"
+        else
+          echo "::set-output name=change_detected::true"
+        fi
+        
+  check_changelog:
+    needs: update-changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Verify Changelog update
+        run: |
+          if [ "${{ needs.update-changelog.outputs.was_updated }}" != "true" ]; then
+            echo "CHANGELOG.md not updated, please update CHANGELOG.md with the changes made in the pull request"
+            exit 1
+          else
+            echo "changelog was updated successfully."
+          fi
